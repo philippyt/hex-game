@@ -5,6 +5,8 @@
 // generate 6x6  = gcc -O3 -march=native -funroll-loops -DBOARD_DIM=6  src/c_generator/hex.c -o src/c_generator/hex
 // etc
 
+// then ./src/c_generator/hex 1000
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
