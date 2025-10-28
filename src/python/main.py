@@ -1,29 +1,31 @@
 import numpy as np
-from parse_games import parse_games
+import argparse
+from parse_games import parse_csv_games, create_graphs_from_games
 from GraphTsetlinMachine.tm import MultiClassGraphTsetlinMachine
 
-def main():
+def main(num_clauses=1000, threshold=2000, specificity=2.0, num_epochs=60, depth=3):
     print("="*60)
     print("HEX GAME WINNER PREDICTION - Graph Tsetlin Machine")
     print("="*60 + "\n")
     
-    # Step 1: Parse the games
-    print("Step 1: Loading and parsing games...")
-    graphs, labels = parse_games(
-        'datasets/hex_games.csv',
-        board_dim=9,
-        hypervector_size=128, 
-        hypervector_bits=2,  
-        verbose=True
-    )
+    # Step 1: Parse the games (get raw game data first)
+    print("Step 1: Loading game data...")
+    print("Parsing games from datasets/hex_games.csv...")
+    games = parse_csv_games('datasets/hex_games.csv', board_dim=9)
     
-    if graphs is None:
+    if not games:
         print("Error: Failed to load games!")
         return
     
+    print(f"Found {len(games)} games")
+    
+    # Get all labels
+    all_labels = np.array([winner for board, winner in games], dtype=np.int32)
+    print(f"Winner distribution: Player 0: {np.sum(all_labels == 0)}, Player 1: {np.sum(all_labels == 1)}")
+    
     # Step 2: Split data into training and testing sets
     print("\nStep 2: Splitting data into train/test sets...")
-    num_games = len(labels)
+    num_games = len(games)
     
     # Use 80% for training, 20% for testing
     train_size = int(0.8 * num_games)
@@ -33,16 +35,42 @@ def main():
     train_indices = indices[:train_size]
     test_indices = indices[train_size:]
     
-    print(f"Training set: {len(train_indices)} games")
-    print(f"Test set: {len(test_indices)} games")
+    # Split the games
+    train_games = [games[i] for i in train_indices]
+    test_games = [games[i] for i in test_indices]
+    
+    print(f"Training set: {len(train_games)} games")
+    print(f"Test set: {len(test_games)} games")
+    
+    # Convert to graph format
+    print("\nConverting training set to graph format...")
+    train_graphs, train_labels = create_graphs_from_games(
+        train_games, 
+        board_dim=9,
+        hypervector_size=128, 
+        hypervector_bits=2
+    )
+    
+    print("Converting test set to graph format...")
+    test_graphs, test_labels = create_graphs_from_games(
+        test_games,
+        board_dim=9,
+        hypervector_size=128, 
+        hypervector_bits=2
+    )
+    
+    print(f"Train - Player 0: {np.sum(train_labels == 0)}, Player 1: {np.sum(train_labels == 1)}")
+    print(f"Test  - Player 0: {np.sum(test_labels == 0)}, Player 1: {np.sum(test_labels == 1)}")
     
     # Step 3: Initialize the Graph Tsetlin Machine
     print("\nStep 3: Initializing Graph Tsetlin Machine...")
+    print(f"Hyperparameters: clauses={num_clauses}, T={threshold}, s={specificity}, depth={depth}")
+    
     tm = MultiClassGraphTsetlinMachine(
-        number_of_clauses=500,      # Number of clauses (patterns to learn)
-        T=1000,                      # Threshold for voting
-        s=1.0,                       # Specificity parameter
-        depth=3,                     # Depth of graph patterns
+        number_of_clauses=num_clauses,
+        T=threshold,
+        s=specificity,
+        depth=depth,
         message_size=128,            # Size of messages passed between nodes
         message_bits=2,              # Bits per message
         max_included_literals=32,    # Max features per clause
@@ -52,6 +80,7 @@ def main():
     
     print(f"Clauses: {tm.number_of_clauses}")
     print(f"Threshold: {tm.T}")
+    print(f"Specificity: {tm.s}")
     print(f"Depth: {tm.depth}")
     print(f"Message size: {tm.message_size} bits")
     
@@ -59,19 +88,39 @@ def main():
     print("\nStep 4: Training the model...")
     print("-" * 60)
     
-    epochs = 50  # Number of training epochs
+    epochs = num_epochs
+    best_test_accuracy = 0
+    best_epoch = 0
     
     for epoch in range(epochs):
-        # Train on training set
-        tm.fit(graphs, labels, epoch=1, incremental=True)
+        # Train on training set only (without incremental to reset between epochs)
+        if epoch == 0:
+            tm.fit(train_graphs, train_labels, epochs=1, incremental=False)
+        else:
+            tm.fit(train_graphs, train_labels, epochs=1, incremental=True)
         
-        # Evaluate on training set
-        train_predictions = tm.predict(graphs)
-        train_accuracy = 100 * np.sum(train_predictions == labels) / len(labels)
-        
-        # Print progress every 5 epochs
+        # Evaluate on both sets periodically
         if (epoch + 1) % 5 == 0 or epoch == 0:
-            print(f"Epoch {epoch+1:3d}/{epochs} - Train Accuracy: {train_accuracy:.2f}%")
+            train_predictions = tm.predict(train_graphs)
+            train_accuracy = 100 * np.sum(train_predictions == train_labels) / len(train_labels)
+            
+            test_predictions = tm.predict(test_graphs)
+            test_accuracy = 100 * np.sum(test_predictions == test_labels) / len(test_labels)
+            
+            # Calculate per-class accuracy on test set
+            test_p0_correct = np.sum((test_predictions == 0) & (test_labels == 0))
+            test_p0_total = np.sum(test_labels == 0)
+            test_p1_correct = np.sum((test_predictions == 1) & (test_labels == 1))
+            test_p1_total = np.sum(test_labels == 1)
+            
+            # Track best model
+            if test_accuracy > best_test_accuracy:
+                best_test_accuracy = test_accuracy
+                best_epoch = epoch + 1
+            
+            print(f"Epoch {epoch+1:3d}/{epochs} - Train: {train_accuracy:.2f}% | Test: {test_accuracy:.2f}% | P0: {100*test_p0_correct/max(test_p0_total,1):.1f}% P1: {100*test_p1_correct/max(test_p1_total,1):.1f}%")
+    
+    print(f"\nBest test accuracy: {best_test_accuracy:.2f}% at epoch {best_epoch}")
     
     print("-" * 60)
     
@@ -79,30 +128,66 @@ def main():
     print("\nStep 5: Final Evaluation")
     print("="*60)
     
-    # Training accuracy
-    train_predictions = tm.predict(graphs)
-    train_accuracy = 100 * np.sum(train_predictions == labels) / len(labels)
+    # Training set evaluation
+    train_predictions = tm.predict(train_graphs)
+    train_accuracy = 100 * np.sum(train_predictions == train_labels) / len(train_labels)
     
-    # Calculate per-class accuracy
-    player0_correct = np.sum((train_predictions == 0) & (labels == 0))
-    player0_total = np.sum(labels == 0)
-    player1_correct = np.sum((train_predictions == 1) & (labels == 1))
-    player1_total = np.sum(labels == 1)
+    train_p0_correct = np.sum((train_predictions == 0) & (train_labels == 0))
+    train_p0_total = np.sum(train_labels == 0)
+    train_p1_correct = np.sum((train_predictions == 1) & (train_labels == 1))
+    train_p1_total = np.sum(train_labels == 1)
     
-    print(f"\nOverall Accuracy: {train_accuracy:.2f}%")
+    # Test set evaluation
+    test_predictions = tm.predict(test_graphs)
+    test_accuracy = 100 * np.sum(test_predictions == test_labels) / len(test_labels)
+    
+    test_p0_correct = np.sum((test_predictions == 0) & (test_labels == 0))
+    test_p0_total = np.sum(test_labels == 0)
+    test_p1_correct = np.sum((test_predictions == 1) & (test_labels == 1))
+    test_p1_total = np.sum(test_labels == 1)
+    
+    print(f"\n{'TRAINING SET':^60}")
+    print(f"Overall Accuracy: {train_accuracy:.2f}%")
     print(f"\nPer-Class Performance:")
-    print(f"  Player 0 wins: {player0_correct}/{player0_total} ({100*player0_correct/player0_total:.2f}%)")
-    print(f"  Player 1 wins: {player1_correct}/{player1_total} ({100*player1_correct/player1_total:.2f}%)")
+    print(f"  Player 0 wins: {train_p0_correct}/{train_p0_total} ({100*train_p0_correct/train_p0_total:.2f}%)")
+    print(f"  Player 1 wins: {train_p1_correct}/{train_p1_total} ({100*train_p1_correct/train_p1_total:.2f}%)")
     
-    # Confusion matrix
     print(f"\nConfusion Matrix:")
     print(f"                Predicted P0  Predicted P1")
-    print(f"Actual P0:      {np.sum((train_predictions == 0) & (labels == 0)):6d}        {np.sum((train_predictions == 1) & (labels == 0)):6d}")
-    print(f"Actual P1:      {np.sum((train_predictions == 0) & (labels == 1)):6d}        {np.sum((train_predictions == 1) & (labels == 1)):6d}")
+    print(f"Actual P0:      {np.sum((train_predictions == 0) & (train_labels == 0)):6d}        {np.sum((train_predictions == 1) & (train_labels == 0)):6d}")
+    print(f"Actual P1:      {np.sum((train_predictions == 0) & (train_labels == 1)):6d}        {np.sum((train_predictions == 1) & (train_labels == 1)):6d}")
+    
+    print(f"\n{'TEST SET':^60}")
+    print(f"Overall Accuracy: {test_accuracy:.2f}%")
+    print(f"\nPer-Class Performance:")
+    print(f"  Player 0 wins: {test_p0_correct}/{test_p0_total} ({100*test_p0_correct/test_p0_total:.2f}%)")
+    print(f"  Player 1 wins: {test_p1_correct}/{test_p1_total} ({100*test_p1_correct/test_p1_total:.2f}%)")
+    
+    print(f"\nConfusion Matrix:")
+    print(f"                Predicted P0  Predicted P1")
+    print(f"Actual P0:      {np.sum((test_predictions == 0) & (test_labels == 0)):6d}        {np.sum((test_predictions == 1) & (test_labels == 0)):6d}")
+    print(f"Actual P1:      {np.sum((test_predictions == 0) & (test_labels == 1)):6d}        {np.sum((test_predictions == 1) & (test_labels == 1)):6d}")
     
     print("\n" + "="*60)
     print("Training complete!")
     print("="*60)
+    
+    return test_accuracy
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description='Train Graph Tsetlin Machine on Hex game data')
+    parser.add_argument('--clauses', type=int, default=1000, help='Number of clauses (default: 1000)')
+    parser.add_argument('--threshold', '-T', type=int, default=2000, help='Threshold T (default: 2000)')
+    parser.add_argument('--specificity', '-s', type=float, default=2.0, help='Specificity s (default: 2.0)')
+    parser.add_argument('--epochs', type=int, default=60, help='Number of epochs (default: 60)')
+    parser.add_argument('--depth', type=int, default=3, help='Graph depth (default: 3)')
+    
+    args = parser.parse_args()
+    
+    main(
+        num_clauses=args.clauses,
+        threshold=args.threshold,
+        specificity=args.specificity,
+        num_epochs=args.epochs,
+        depth=args.depth
+    )
