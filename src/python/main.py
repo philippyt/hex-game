@@ -3,11 +3,14 @@ import numpy as np
 from parse_games import parse_csv_games, create_graphs_from_games
 from GraphTsetlinMachine.tm import MultiClassGraphTsetlinMachine
 from typing import NoReturn
+from pathlib import Path
 
 def main() -> NoReturn:
     np.random.seed(42)
 
-    games = parse_csv_games("hex_games_5.csv", board_dim=5)
+    repo_root = Path(__file__).resolve().parents[2]
+    dataset_fp = repo_root / "datasets" / "hex_games_5.csv"
+    games = parse_csv_games(str(dataset_fp), board_dim=5)
 
     train_size = int(0.8 * len(games))
     indices = np.random.permutation(len(games))
