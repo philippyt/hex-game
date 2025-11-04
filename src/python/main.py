@@ -13,8 +13,8 @@ def main():
     test_games = [games[i] for i in indices[train_size:]]
     
     # Convert to graphs
-    train_graphs, train_labels = create_graphs_from_games(train_games, board_dim=9)
-    test_graphs, test_labels = create_graphs_from_games(test_games, board_dim=9)
+    train_graphs, train_labels = create_graphs_from_games(train_games, board_dim=5)
+    test_graphs, test_labels = create_graphs_from_games(test_games, board_dim=5)
     
     # Initialize model
     tm = MultiClassGraphTsetlinMachine(
@@ -39,8 +39,19 @@ def main():
             print(f"Epoch {epoch+1}: Train {train_acc:.1f}%, Test {test_acc:.1f}%")
     
     # Final evaluation
-    test_acc = 100 * np.mean(tm.predict(test_graphs) == test_labels)
+    test_predictions = tm.predict(test_graphs)
+    test_acc = 100 * np.mean(test_predictions == test_labels)
     print(f"\nFinal Test Accuracy: {test_acc:.1f}%")
+    
+    # Confusion matrix
+    print("\nConfusion Matrix:")
+    print("                Predicted P0  Predicted P1")
+    p0_as_p0 = np.sum((test_predictions == 0) & (test_labels == 0))
+    p0_as_p1 = np.sum((test_predictions == 1) & (test_labels == 0))
+    p1_as_p0 = np.sum((test_predictions == 0) & (test_labels == 1))
+    p1_as_p1 = np.sum((test_predictions == 1) & (test_labels == 1))
+    print(f"Actual P0:      {p0_as_p0:6d}        {p0_as_p1:6d}")
+    print(f"Actual P1:      {p1_as_p0:6d}        {p1_as_p1:6d}")
 
 if __name__ == "__main__":
     main()
