@@ -18,10 +18,10 @@ def main():
     
     # Initialize model
     tm = MultiClassGraphTsetlinMachine(
-        number_of_clauses=1000,
-        T=2000,
-        s=2.0,
-        depth=3,
+        number_of_clauses=2000,     
+        T=5000,                      
+        s=5.0,                
+        depth=2,              
         message_size=128,
         message_bits=2,
         max_included_literals=32,
@@ -30,13 +30,23 @@ def main():
     )
     
     # Train
-    for epoch in range(60):
+    for epoch in range(100):
         tm.fit(train_graphs, train_labels, epochs=1, incremental=(epoch > 0))
         
         if (epoch + 1) % 10 == 0:
-            train_acc = 100 * np.mean(tm.predict(train_graphs) == train_labels)
-            test_acc = 100 * np.mean(tm.predict(test_graphs) == test_labels)
-            print(f"Epoch {epoch+1}: Train {train_acc:.1f}%, Test {test_acc:.1f}%")
+            train_pred = tm.predict(train_graphs)
+            test_pred = tm.predict(test_graphs)
+            
+            train_acc = 100 * np.mean(train_pred == train_labels)
+            test_acc = 100 * np.mean(test_pred == test_labels)
+            
+            # Check if model is predicting both classes
+            train_p0 = np.sum(train_pred == 0)
+            train_p1 = np.sum(train_pred == 1)
+            test_p0 = np.sum(test_pred == 0)
+            test_p1 = np.sum(test_pred == 1)
+            
+            print(f"Epoch {epoch+1}: Train {train_acc:.1f}% (P0:{train_p0}, P1:{train_p1}) | Test {test_acc:.1f}% (P0:{test_p0}, P1:{test_p1})")
     
     # Final evaluation
     test_predictions = tm.predict(test_graphs)
