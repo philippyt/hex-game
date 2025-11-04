@@ -12,19 +12,18 @@ def main():
     train_games = [games[i] for i in indices[:train_size]]
     test_games = [games[i] for i in indices[train_size:]]
     
-    # Convert to graphs (test must use same hypervector mappings as train!)
-    # Use larger hypervectors for better discrimination
+    # Convert to graphs (test must use same mappings as train)
     train_graphs, train_labels = create_graphs_from_games(train_games, board_dim=5, hypervector_size=256, hypervector_bits=2)
     test_graphs, test_labels = create_graphs_from_games(test_games, board_dim=5, init_with=train_graphs)
     
-    # Initialize model - using parameters similar to working examples
+    # Initialize model 
     tm = MultiClassGraphTsetlinMachine(
-        number_of_clauses=8000,  # Match MNIST convolution example
-        T=3000,  # Higher threshold
-        s=10.0,  # Higher specificity for sparse patterns
-        depth=3,  # Message passing depth
-        message_size=256,  # Match hypervector size  
-        message_bits=2,  # Keep consistent with hypervector_bits
+        number_of_clauses=8000,  
+        T=3000, 
+        s=10.0,  
+        depth=3, 
+        message_size=256,   
+        message_bits=2, 
         grid=(16*13, 1, 1),
         block=(128, 1, 1)
     )
