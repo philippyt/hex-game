@@ -6,16 +6,6 @@ def main():
     # Load games
     games = parse_csv_games('datasets/hex_games_5.csv', board_dim=5)
     
-    # Debug: Check piece counts with CORRECT encoding (-1=P0, 1=P1, 0=Empty)
-    print("Sample of first 5 games:")
-    for i in range(min(5, len(games))):
-        board, winner = games[i]
-        board_arr = np.array(board)
-        p0_count = np.sum(board_arr == -1)
-        p1_count = np.sum(board_arr == 1)
-        empty_count = np.sum(board_arr == 0)
-        print(f"Game {i}: Winner=P{winner}, P0={p0_count}, P1={p1_count}, Empty={empty_count}")
-    
     # Split into train/test (80/20)
     train_size = int(0.8 * len(games))
     indices = np.random.permutation(len(games))
@@ -25,9 +15,6 @@ def main():
     # Convert to graphs
     train_graphs, train_labels = create_graphs_from_games(train_games, board_dim=5)
     test_graphs, test_labels = create_graphs_from_games(test_games, board_dim=5)
-    
-    print(f"Train: P0_wins={np.sum(train_labels==0)}, P1_wins={np.sum(train_labels==1)}")
-    print(f"Test: P0_wins={np.sum(test_labels==0)}, P1_wins={np.sum(test_labels==1)}\n")
     
     # Initialize model
     tm = MultiClassGraphTsetlinMachine(
