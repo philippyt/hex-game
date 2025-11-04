@@ -1,6 +1,7 @@
 graphtsetlinmachine
 numpy
 pandas
+optuna
 matplotlib
 scikit-learn
 numba
