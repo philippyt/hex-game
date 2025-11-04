@@ -27,8 +27,7 @@ def parse_csv_games(csv_file, board_dim=9):
 def convert_board_to_graph(board, graph_id, graphs_obj, board_dim):
     """Convert board state to graph representation"""
     neighbors = create_hex_neighbors(board_dim)
-    num_nodes = board_dim * board_dim
-    graphs_obj.set_number_of_graph_nodes(graph_id, num_nodes)
+    # Note: set_number_of_graph_nodes is called BEFORE this function
     
     for i in range(board_dim):
         for j in range(board_dim):
@@ -80,18 +79,34 @@ def add_properties_to_graph(board, graph_id, graphs_obj, board_dim):
             else:  # board[i][j] == 0
                 graphs_obj.add_graph_node_property(graph_id, node_id, 'Empty')
 
-def create_graphs_from_games(games, board_dim=9, hypervector_size=128, hypervector_bits=2):
-    """Convert list of games to Graphs object"""
+def create_graphs_from_games(games, board_dim=9, hypervector_size=128, hypervector_bits=2, init_with=None):
+    """Convert list of games to Graphs object
+    
+    Args:
+        games: List of (board, winner) tuples
+        board_dim: Dimension of the board
+        hypervector_size: Size of hypervectors
+        hypervector_bits: Bits per hypervector
+        init_with: Optional Graphs object to initialize from (for test set)
+    """
     num_games = len(games)
     symbols = ['PlayerNeg', 'PlayerPos', 'Empty']
     num_nodes = board_dim * board_dim
     
-    graphs = Graphs(
-        number_of_graphs=num_games,
-        symbols=symbols,
-        hypervector_size=hypervector_size,
-        hypervector_bits=hypervector_bits
-    )
+    if init_with is not None:
+        # Use existing hypervector mappings from train set
+        graphs = Graphs(
+            number_of_graphs=num_games,
+            init_with=init_with
+        )
+    else:
+        # Create new hypervector mappings (for train set)
+        graphs = Graphs(
+            number_of_graphs=num_games,
+            symbols=symbols,
+            hypervector_size=hypervector_size,
+            hypervector_bits=hypervector_bits
+        )
     
     # Set number of nodes
     for graph_id in range(num_games):
