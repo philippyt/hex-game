@@ -67,17 +67,24 @@ def add_properties_to_graph(board, graph_id, graphs_obj, board_dim):
     """Add properties to nodes
     CSV encoding: -1 and 1 are the two players, 0 is empty
     Winner encoding: winner=0 means player with 1's wins, winner=1 means player with -1's wins
+    
+    Also adds position information to help model learn spatial patterns
     """
     for i in range(board_dim):
         for j in range(board_dim):
             node_id = i * board_dim + j
             
+            # Add piece type
             if board[i][j] == -1:
                 graphs_obj.add_graph_node_property(graph_id, node_id, 'PlayerNeg')
             elif board[i][j] == 1:
                 graphs_obj.add_graph_node_property(graph_id, node_id, 'PlayerPos')
             else:  # board[i][j] == 0
                 graphs_obj.add_graph_node_property(graph_id, node_id, 'Empty')
+            
+            # Add position information (helps model learn spatial patterns)
+            graphs_obj.add_graph_node_property(graph_id, node_id, f'Row{i}')
+            graphs_obj.add_graph_node_property(graph_id, node_id, f'Col{j}')
 
 def create_graphs_from_games(games, board_dim=9, hypervector_size=128, hypervector_bits=2, init_with=None):
     """Convert list of games to Graphs object
@@ -90,7 +97,14 @@ def create_graphs_from_games(games, board_dim=9, hypervector_size=128, hypervect
         init_with: Optional Graphs object to initialize from (for test set)
     """
     num_games = len(games)
+    
+    # Create symbol list: piece types + position information
     symbols = ['PlayerNeg', 'PlayerPos', 'Empty']
+    # Add row and column symbols for spatial awareness
+    for i in range(board_dim):
+        symbols.append(f'Row{i}')
+        symbols.append(f'Col{i}')
+    
     num_nodes = board_dim * board_dim
     
     if init_with is not None:
