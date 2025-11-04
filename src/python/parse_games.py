@@ -23,7 +23,6 @@ def parse_csv_games(csv_file: str, board_dim: int = 9) -> List[Tuple[np.ndarray,
 def convert_board_to_graph(board: np.ndarray, graph_id: int, graphs_obj: Graphs, board_dim: int) -> None:
     neighbors = create_hex_neighbors(board_dim)
     num_nodes = board_dim * board_dim
-    graphs_obj.set_number_of_graph_nodes(graph_id, num_nodes)
     for i in range(board_dim):
         for j in range(board_dim):
             node_id = i * board_dim + j
@@ -82,7 +81,16 @@ def create_graphs_from_games(games: List[Tuple[np.ndarray, int]], board_dim: int
         graphs = Graphs(number_of_graphs=num_games, init_with=init_with)
     else:
         graphs = Graphs(number_of_graphs=num_games, symbols=symbols, hypervector_size=hypervector_size, hypervector_bits=hypervector_bits)
+    # First set the number of nodes for each graph so that internal
+    # arrays can be allocated correctly in prepare_node_configuration().
+    for graph_id, (board, _) in enumerate(games):
+        num_nodes = board_dim * board_dim
+        graphs.set_number_of_graph_nodes(graph_id, num_nodes)
+
     graphs.prepare_node_configuration()
+
+    # Now add nodes to each graph (prepare_node_configuration must be
+    # called before add_graph_node is used).
     for graph_id, (board, _) in enumerate(games):
         convert_board_to_graph(board, graph_id, graphs, board_dim)
     graphs.prepare_edge_configuration()
