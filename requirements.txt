@@ -2,6 +2,7 @@ graphtsetlinmachine
 numpy
 pandas
 optuna
+optuna-dashboard
 matplotlib
 scikit-learn
 numba
