@@ -65,22 +65,25 @@ def add_edges_to_graph(graph_id, graphs_obj, board_dim):
                     graphs_obj.add_graph_node_edge(graph_id, source_node_id, dest_node_id, 'Adjacent')
 
 def add_properties_to_graph(board, graph_id, graphs_obj, board_dim):
-    """Add properties to nodes"""
+    """Add properties to nodes
+    CSV encoding: -1 and 1 are the two players, 0 is empty
+    Winner encoding: winner=0 means player with 1's wins, winner=1 means player with -1's wins
+    """
     for i in range(board_dim):
         for j in range(board_dim):
             node_id = i * board_dim + j
             
-            if board[i][j] == 1:
-                graphs_obj.add_graph_node_property(graph_id, node_id, '1')
-            elif board[i][j] == 0:
-                graphs_obj.add_graph_node_property(graph_id, node_id, '0')
-            else:
-                graphs_obj.add_graph_node_property(graph_id, node_id, '-1')
+            if board[i][j] == -1:
+                graphs_obj.add_graph_node_property(graph_id, node_id, 'PlayerNeg')
+            elif board[i][j] == 1:
+                graphs_obj.add_graph_node_property(graph_id, node_id, 'PlayerPos')
+            else:  # board[i][j] == 0
+                graphs_obj.add_graph_node_property(graph_id, node_id, 'Empty')
 
 def create_graphs_from_games(games, board_dim=9, hypervector_size=128, hypervector_bits=2):
     """Convert list of games to Graphs object"""
     num_games = len(games)
-    symbols = ['1', '0', '-1']
+    symbols = ['PlayerNeg', 'PlayerPos', 'Empty']
     num_nodes = board_dim * board_dim
     
     graphs = Graphs(
