@@ -7,11 +7,12 @@ from typing import NoReturn
 from parse_games import parse_csv_games, create_graphs_from_games
 from GraphTsetlinMachine.tm import MultiClassGraphTsetlinMachine
 
+board_size = 11
 
 def objective(trial: optuna.Trial) -> float:
     # Fixed dataset / split (seeded inside main flow when called)
     repo_root = Path(__file__).resolve().parents[2]
-    dataset_fp = repo_root / "datasets" / "hex_games_5.csv"
+    dataset_fp = repo_root / "datasets" / f"hex_games_{board_size}.csv"
     games = parse_csv_games(str(dataset_fp), board_dim=5)
 
     # Simple 80/20 split with fixed seed for reproducibility
@@ -71,7 +72,7 @@ def main() -> NoReturn:
     sampler = optuna.samplers.TPESampler(seed=42)
     pruner = optuna.pruners.MedianPruner(n_warmup_steps=5)
 
-    study = optuna.create_study(direction="maximize", sampler=sampler, pruner=pruner, storage=storage, study_name="hex_tm_opt", load_if_exists=True)
+    study = optuna.create_study(direction="maximize", sampler=sampler, pruner=pruner, storage=storage, study_name=f"hex_tm_opt_{board_size}", load_if_exists=True)
 
     n_trials = 50
     print(f"Starting Optuna study with {n_trials} trials (storage={storage})")
