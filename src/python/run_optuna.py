@@ -9,6 +9,8 @@ from GraphTsetlinMachine.tm import MultiClassGraphTsetlinMachine
 
 board_size = 11
 
+#TODO: If there is a tie, the winner is the one whith the least num of clauses, aka we could implement into optuna to minimize num of clauses as well?
+
 def objective(trial: optuna.Trial) -> float:
     # Fixed dataset / split (seeded inside main flow when called)
     repo_root = Path(__file__).resolve().parents[2]
