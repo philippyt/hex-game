@@ -11,3 +11,5 @@ TODO: Add meta data so we can see on what games the potentially fail (0, -2, or 
 TODO: Add some additional inputs
 
 TODO: Automatically generate symbols via pattern mining or attention over adjacency graphs, Right now it's hand-engineered in parse_games.py
+
+TODO: Try minimal sets vs adaptive ablation. For example set (PlayerPos/Neg, Adjacent, SameColor_Pos/Neg, Row*) and compare accuracy vs. adaptive pruning. If equal, the starting small argument strengthens. If not, adaptive wins.
