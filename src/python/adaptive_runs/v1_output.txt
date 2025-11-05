@@ -1,0 +1,95 @@
+Loading games from hex_games_5.csv
+Creating graphs...
+Finished graph creation
+Initializing model...
+Initialization of sparse structure.
+Epoch 01: Train 39.83% | Val 36.50% | Test 49.50%
+Epoch 02: Train 45.67% | Val 37.00% | Test 49.50%
+Epoch 03: Train 46.00% | Val 40.00% | Test 49.00%
+Epoch 04: Train 50.33% | Val 45.00% | Test 52.00%
+Epoch 05: Train 53.33% | Val 46.00% | Test 55.00%
+Epoch 06: Train 57.17% | Val 48.00% | Test 59.00%
+Epoch 07: Train 58.67% | Val 49.00% | Test 57.00%
+Epoch 08: Train 61.00% | Val 49.50% | Test 59.50%
+Epoch 09: Train 61.33% | Val 52.00% | Test 59.50%
+Epoch 10: Train 59.67% | Val 49.50% | Test 58.00%
+Computing symbol activity...
+Rebuilding graphs with 14 / 18 symbols retained
+Kept symbols: ['Row1', 'Row0', 'EdgeNode', 'Col3', 'Col1', 'PlayerPos', 'PlayerNeg', 'Col0', 'Col4', 'Row4', 'Row2', 'Col2', 'Row3', 'CornerNode']
+Dropped symbols: ['Empty', 'Adjacent', 'SameColor_Neg', 'SameColor_Pos']
+Epoch 11: Train 39.83% | Val 36.50% | Test 49.50%
+Epoch 12: Train 39.83% | Val 36.50% | Test 49.50%
+Epoch 13: Train 45.67% | Val 38.50% | Test 49.50%
+Epoch 14: Train 57.33% | Val 50.00% | Test 58.50%
+Epoch 15: Train 55.67% | Val 49.00% | Test 57.00%
+Epoch 16: Train 57.50% | Val 48.50% | Test 56.00%
+Epoch 17: Train 59.50% | Val 51.50% | Test 58.00%
+Epoch 18: Train 60.83% | Val 53.50% | Test 57.50%
+Epoch 19: Train 62.83% | Val 54.50% | Test 58.00%
+Epoch 20: Train 65.00% | Val 55.00% | Test 59.50%
+Computing symbol activity...
+Rebuilding graphs with 11 / 14 symbols retained
+Kept symbols: ['Row0', 'Col2', 'Row2', 'Row4', 'PlayerPos', 'Col4', 'CornerNode', 'Row3', 'Col3', 'Row1', 'Col1']
+Dropped symbols: ['PlayerNeg', 'Col0', 'EdgeNode']
+Epoch 21: Train 42.83% | Val 35.50% | Test 51.50%
+Epoch 22: Train 40.17% | Val 36.50% | Test 50.00%
+Epoch 23: Train 53.50% | Val 44.50% | Test 56.00%
+Epoch 24: Train 56.00% | Val 48.00% | Test 54.00%
+Epoch 25: Train 59.33% | Val 48.00% | Test 56.00%
+Epoch 26: Train 60.50% | Val 50.50% | Test 56.00%
+Epoch 27: Train 66.17% | Val 55.00% | Test 62.00%
+Epoch 28: Train 64.67% | Val 56.00% | Test 57.50%
+Epoch 29: Train 65.33% | Val 58.00% | Test 60.00%
+Epoch 30: Train 64.00% | Val 56.00% | Test 59.00%
+Computing symbol activity...
+Rebuilding graphs with 8 / 11 symbols retained
+Kept symbols: ['CornerNode', 'Col1', 'Row1', 'Row4', 'Col3', 'Col2', 'Row0', 'Row3']
+Dropped symbols: ['Row2', 'PlayerPos', 'Col4']
+Epoch 31: Train 43.83% | Val 37.00% | Test 51.00%
+Epoch 32: Train 41.00% | Val 35.50% | Test 50.50%
+Epoch 33: Train 51.17% | Val 41.50% | Test 55.50%
+Epoch 34: Train 59.17% | Val 53.50% | Test 55.00%
+Epoch 35: Train 63.00% | Val 55.00% | Test 57.50%
+Epoch 36: Train 61.50% | Val 55.00% | Test 56.00%
+Epoch 37: Train 65.17% | Val 56.00% | Test 61.50%
+Epoch 38: Train 66.17% | Val 57.00% | Test 60.50%
+Epoch 39: Train 64.50% | Val 55.50% | Test 60.50%
+Epoch 40: Train 66.33% | Val 60.00% | Test 59.00%
+Computing symbol activity...
+Rebuilding graphs with 6 / 8 symbols retained
+Kept symbols: ['Col1', 'Col3', 'CornerNode', 'Row4', 'Row1', 'Row0']
+Dropped symbols: ['Row3', 'Col2']
+Epoch 41: Train 55.33% | Val 54.50% | Test 55.00%
+Epoch 42: Train 41.17% | Val 36.50% | Test 50.50%
+Epoch 43: Train 59.17% | Val 52.00% | Test 55.50%
+Epoch 44: Train 61.50% | Val 53.50% | Test 59.50%
+Epoch 45: Train 66.50% | Val 59.00% | Test 66.50%
+Epoch 46: Train 66.00% | Val 57.00% | Test 63.00%
+Epoch 47: Train 65.67% | Val 57.00% | Test 63.00%
+Epoch 48: Train 68.83% | Val 59.50% | Test 64.00%
+Epoch 49: Train 65.83% | Val 57.50% | Test 63.00%
+Epoch 50: Train 67.50% | Val 59.50% | Test 63.00%
+Computing symbol activity...
+Rebuilding graphs with 4 / 6 symbols retained
+Kept symbols: ['Row4', 'Col3', 'Col1', 'CornerNode']
+Dropped symbols: ['Row0', 'Row1']
+Epoch 51: Train 53.50% | Val 50.50% | Test 59.00%
+Epoch 52: Train 40.67% | Val 36.00% | Test 49.50%
+Epoch 53: Train 52.17% | Val 43.50% | Test 52.50%
+Epoch 54: Train 55.83% | Val 50.00% | Test 54.50%
+Epoch 55: Train 62.50% | Val 56.50% | Test 62.00%
+Epoch 56: Train 66.00% | Val 55.50% | Test 61.50%
+Epoch 57: Train 64.50% | Val 55.00% | Test 61.50%
+Epoch 58: Train 66.00% | Val 60.00% | Test 64.50%
+Epoch 59: Train 66.67% | Val 60.50% | Test 66.50%
+Epoch 60: Train 66.17% | Val 58.50% | Test 64.00%
+Computing symbol activity...
+Rebuilding graphs with 3 / 4 symbols retained
+Kept symbols: ['Col3', 'Row4', 'CornerNode']
+Dropped symbols: ['Col1']
+Running ROAD / ROAR evaluation...
+Rebuilding ROAD graphs (removing top features)...
+Rebuilding ROAR graphs (retaining top features)...
+ROAD accuracy (remove top): 36.50%
+ROAR accuracy (retain top): 36.50%
+Saved training history.
