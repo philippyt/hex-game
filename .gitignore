@@ -118,3 +118,4 @@ models/
 
 # Logs
 logs/
+*.db
