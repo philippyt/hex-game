@@ -74,16 +74,9 @@ def objective(trial: optuna.Trial, board_size: int, board_suffix: str) -> tuple[
         # Incremental training starts after first epoch
         tm.fit(train_graphs, train_labels, epochs=1, incremental=(epoch > 0))
 
-        # Evaluate on validation set
-        val_pred = tm.predict(val_graphs)
-        val_acc = float(np.mean(val_pred == val_labels))
-
-        # Report intermediate objective value to Optuna for pruning
-        trial.report(val_acc, epoch)
-
-        # Prune unpromising trials early
-        if trial.should_prune():
-            raise optuna.TrialPruned()
+    # Evaluate on validation set after all training epochs
+    val_pred = tm.predict(val_graphs)
+    val_acc = float(np.mean(val_pred == val_labels))
 
     # Return validation accuracy and number of clauses
     # Optuna will maximize accuracy and minimize num_clauses
@@ -99,16 +92,15 @@ def run_optimization(board_size: int, board_suffix: str, n_trials: int = 50):
         board_suffix: Suffix for dataset filename
         n_trials: Number of optimization trials to run
     """
-    # Study settings: TPESampler with MedianPruner and persistent SQLite storage
+    # Study settings: TPESampler with persistent SQLite storage
+    # Note: Pruning is not supported for multi-objective optimization
     storage = "sqlite:///optuna_study.db"
     sampler = optuna.samplers.TPESampler(seed=42)
-    pruner = optuna.pruners.MedianPruner(n_warmup_steps=5)
 
     # Create multi-objective study: maximize accuracy, minimize clauses
     study = optuna.create_study(
         directions=["maximize", "minimize"],
         sampler=sampler,
-        pruner=pruner,
         storage=storage,
         study_name=f"hex_tm_multiobjective_{board_size}{board_suffix}",
         load_if_exists=True
