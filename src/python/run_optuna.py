@@ -8,7 +8,7 @@ from parse_games import parse_csv_games, create_graphs_from_games
 from GraphTsetlinMachine.tm import MultiClassGraphTsetlinMachine
 
 
-def objective(trial: optuna.Trial, board_size: int, board_suffix: str) -> tuple[float, int]:
+def objective(trial: optuna.Trial, train_games: list, val_games: list, board_size: int) -> tuple[float, int]:
     """
     Multi-objective optimization function for Optuna.
     
@@ -18,23 +18,13 @@ def objective(trial: optuna.Trial, board_size: int, board_suffix: str) -> tuple[
     
     Args:
         trial: Optuna trial object
+        train_games: Pre-parsed training games
+        val_games: Pre-parsed validation games
         board_size: Size of the hex board
-        board_suffix: Suffix for dataset filename (e.g., "", "_minus2", "_minus5")
         
     Returns:
         Tuple of (validation_accuracy, number_of_clauses)
     """
-    repo_root = Path(__file__).resolve().parents[2]
-    dataset_fp = repo_root / "datasets" / f"hex_games_{board_size}{board_suffix}.csv"
-    games = parse_csv_games(str(dataset_fp), board_dim=board_size)
-
-    # Simple 80/20 train/validation split
-    rng = np.random.RandomState(42)
-    indices = rng.permutation(len(games))
-    train_size = int(0.8 * len(games))
-    train_games = [games[i] for i in indices[:train_size]]
-    val_games = [games[i] for i in indices[train_size:]]
-
     # Suggest hyperparameters
     number_of_clauses = trial.suggest_int("number_of_clauses", 5000, 80000, log=True)
     T = trial.suggest_int("T", 1000, 70000, log=True)
@@ -92,6 +82,25 @@ def run_optimization(board_size: int, board_suffix: str, n_trials: int = 50):
         board_suffix: Suffix for dataset filename
         n_trials: Number of optimization trials to run
     """
+    # Parse games and create train/validation split ONCE before all trials
+    repo_root = Path(__file__).resolve().parents[2]
+    dataset_fp = repo_root / "datasets" / f"hex_games_{board_size}{board_suffix}.csv"
+    
+    print(f"\n{'=' * 80}")
+    print(f"Loading dataset: hex_games_{board_size}{board_suffix}.csv")
+    games = parse_csv_games(str(dataset_fp), board_dim=board_size)
+    
+    # Simple 80/20 train/validation split
+    rng = np.random.RandomState(42)
+    indices = rng.permutation(len(games))
+    train_size = int(0.8 * len(games))
+    train_games = [games[i] for i in indices[:train_size]]
+    val_games = [games[i] for i in indices[train_size:]]
+    
+    print(f"Total games: {len(games)}")
+    print(f"Training games: {len(train_games)}")
+    print(f"Validation games: {len(val_games)}")
+    
     # Study settings: TPESampler with persistent SQLite storage
     # Note: Pruning is not supported for multi-objective optimization
     storage = "sqlite:///optuna_study.db"
@@ -106,15 +115,13 @@ def run_optimization(board_size: int, board_suffix: str, n_trials: int = 50):
         load_if_exists=True
     )
 
-    print(f"\n{'=' * 80}")
     print(f"Starting Optuna multi-objective study with {n_trials} trials")
-    print(f"Dataset: hex_games_{board_size}{board_suffix}.csv")
     print(f"Storage: {storage}")
     print(f"{'=' * 80}\n")
 
-    # Run optimization
+    # Run optimization with pre-parsed games
     study.optimize(
-        lambda trial: objective(trial, board_size, board_suffix),
+        lambda trial: objective(trial, train_games, val_games, board_size),
         n_trials=n_trials,
         gc_after_trial=True
     )
