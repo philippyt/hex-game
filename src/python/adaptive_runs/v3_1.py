@@ -1,5 +1,5 @@
 from __future__ import annotations
-import os, math
+import os, math, time
 import numpy as np
 import matplotlib.pyplot as plt
 from dataclasses import dataclass
@@ -146,11 +146,15 @@ def run_training_with_adaptive_selection(cfg: TMConfig) -> Dict[str, Any]:
     no_change_epochs = 0
     last_train, last_val = None, None
     road_roar_history = []
+
+    start_time = time.time()
+
     for epoch in range(cfg.epochs):
         tm.fit(train_graphs, train_labels, epochs = 1, incremental = (epoch > 0))
         train_acc = 100 * np.mean(tm.predict(train_graphs) == train_labels)
         val_acc = 100 * np.mean(tm.predict(val_graphs) == val_labels)
-        print(f"Epoch {epoch + 1:02d}: Train {train_acc:.2f}% | Val {val_acc:.2f}%")
+        elapsed = int(time.time() - start_time)
+        print(f"Epoch {epoch + 1:02d}: Train {train_acc:.2f}% | Val {val_acc:.2f}% | Time: {elapsed} sec")
         if last_train is not None and last_val is not None:
             if abs(train_acc - last_train) < 1e-6 and abs(val_acc - last_val) < 1e-6:
                 no_change_epochs += 1
@@ -185,8 +189,10 @@ def run_training_with_adaptive_selection(cfg: TMConfig) -> Dict[str, Any]:
                     gset.encode()
             active_symbols = kept
         history.append({"epoch": epoch + 1, "train": train_acc, "val": val_acc})
+    total_time = int(time.time() - start_time)
     test_acc = 100 * np.mean(tm.predict(test_graphs) == test_labels)
     print(f"\nFinal test accuracy: {test_acc:.2f}%")
+    print(f"Total training time: {total_time} sec ({total_time / 60:.1f} min)")
     return {"history": history, "road_roar": road_roar_history, "tm": tm, "test_graphs": test_graphs, "test_labels": test_labels, "test_acc": test_acc, "train_graphs": train_graphs, "train_labels": train_labels}
 
 def plot_results(history: List[Dict[str, float]], road_roar_results: List[Tuple[int, float, float]], outdir: str):
@@ -216,7 +222,7 @@ def plot_results(history: List[Dict[str, float]], road_roar_results: List[Tuple[
         plt.xticks(range(0, max(epochs_rr) + 1, 5))
         plt.xlabel("Epoch")
         plt.ylabel("Accuracy (%)")
-        plt.title("ROAD / ROAR Evolution Across Training")
+        plt.title("ROAD / ROAR across training")
         plt.legend()
         plt.grid(True, linestyle = "--", alpha = 0.5)
         plt.tight_layout()
