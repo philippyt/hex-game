@@ -38,10 +38,8 @@ void hg_init(struct hex_game *hg) {
         for (int j = 0; j < BOARD_DIM + 2; j++) {
             hg->board[(i * (BOARD_DIM + 2) + j) * 2] = 0;
             hg->board[(i * (BOARD_DIM + 2) + j) * 2 + 1] = 0;
-
             if (i > 0 && i < BOARD_DIM + 1 && j > 0 && j < BOARD_DIM + 1)
                 hg->open_positions[(i - 1) * BOARD_DIM + j - 1] = i * (BOARD_DIM + 2) + j;
-
             hg->connected[(i * (BOARD_DIM + 2) + j) * 2] = (i == 0);
             hg->connected[(i * (BOARD_DIM + 2) + j) * 2 + 1] = (j == 0);
         }
@@ -53,7 +51,6 @@ int hg_connect(struct hex_game *hg, int player, int pos) {
     hg->connected[pos * 2 + player] = 1;
     if (player == 0 && pos / (BOARD_DIM + 2) == BOARD_DIM) return 1;
     if (player == 1 && pos % (BOARD_DIM + 2) == BOARD_DIM) return 1;
-
     for (int i = 0; i < 6; i++) {
         int n = pos + neighbors[i];
         if (hg->board[n * 2 + player] && !hg->connected[n * 2 + player])
@@ -110,59 +107,58 @@ int main(int argc, char *argv[]) {
     FILE *f_final = fopen(filename_final, "w");
     FILE *f_minus2 = fopen(filename_minus2, "w");
     FILE *f_minus5 = fopen(filename_minus5, "w");
-
     if (!f_final || !f_minus2 || !f_minus5) {
         perror("Error opening output files");
         return 1;
     }
 
     for (int i = 0; i < BOARD_DIM; i++) {
-        for (int j = 0; j < BOARD_DIM; j++)
+        for (int j = 0; j < BOARD_DIM; j++) {
             fprintf(f_final, "cell_%d_%d,", i, j);
+            fprintf(f_minus2, "cell_%d_%d,", i, j);
+            fprintf(f_minus5, "cell_%d_%d,", i, j);
+        }
     }
     fprintf(f_final, "winner\n");
-
-    for (int i = 0; i < BOARD_DIM; i++) {
-        for (int j = 0; j < BOARD_DIM; j++)
-            fprintf(f_minus2, "cell_%d_%d,", i, j);
-    }
     fprintf(f_minus2, "winner\n");
-
-    for (int i = 0; i < BOARD_DIM; i++) {
-        for (int j = 0; j < BOARD_DIM; j++)
-            fprintf(f_minus5, "cell_%d_%d,", i, j);
-    }
     fprintf(f_minus5, "winner\n");
 
     struct hex_game hg;
     for (int g = 0; g < total_games; g++) {
         hg_init(&hg);
-        int player = 0, winner = -1;
-
-        int moves_made = 0;
-        int total_moves = BOARD_DIM * BOARD_DIM;
-
+        int player = 0;
+        int winner = -1;
+        int move_positions[BOARD_DIM * BOARD_DIM];
+        int move_players[BOARD_DIM * BOARD_DIM];
+        int move_count = 0;
         while (!hg_full(&hg)) {
             int pos = hg_place_piece_random(&hg, player);
-            moves_made++;
-
+            move_positions[move_count] = pos;
+            move_players[move_count] = player;
+            move_count++;
             if (hg_winner(&hg, player, pos)) {
                 winner = player;
                 break;
             }
-
             player = 1 - player;
-
-            int moves_left = total_moves - moves_made;
-
-            // save board when 5 or 2 moves remain
-            if (moves_left == 5)
-                hg_write_board(f_minus5, &hg, winner);
-            else if (moves_left == 2)
-                hg_write_board(f_minus2, &hg, winner);
         }
-
+        if (winner == -1) continue;
         hg_write_board(f_final, &hg, winner);
+        for (int step_back = 2; step_back <= 5; step_back += 3) {
+            int cutoff = move_count - step_back;
+            if (cutoff <= 0) continue;
+            struct hex_game replay;
+            hg_init(&replay);
+            for (int m = 0; m < cutoff; m++) {
+                int pos = move_positions[m];
+                int pl = move_players[m];
+                replay.board[pos * 2 + pl] = 1;
+            }
+            if (step_back == 2)
+                hg_write_board(f_minus2, &replay, winner);
+            else
+                hg_write_board(f_minus5, &replay, winner);
+        }
     }
 
     fclose(f_final);
