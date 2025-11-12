@@ -82,44 +82,97 @@ int hg_place_piece_random(struct hex_game *hg, int player) {
 
 int hg_full(struct hex_game *hg) { return hg->number_of_open_positions == 0; }
 
+void hg_write_board(FILE *f, struct hex_game *hg, int winner) {
+    for (int i = 1; i <= BOARD_DIM; i++) {
+        for (int j = 1; j <= BOARD_DIM; j++) {
+            int p0 = hg->board[(i * (BOARD_DIM + 2) + j) * 2];
+            int p1 = hg->board[(i * (BOARD_DIM + 2) + j) * 2 + 1];
+            int val = p0 ? 1 : (p1 ? -1 : 0);
+            fprintf(f, "%d,", val);
+        }
+    }
+    fprintf(f, "%d\n", winner);
+}
+
 int main(int argc, char *argv[]) {
     int total_games = argc > 1 ? atoi(argv[1]) : 100;
     srand((unsigned int)time(NULL));
     hg_init_neighbors();
 
-    char filename[128];
-    snprintf(filename, sizeof(filename), "datasets/hex_games_%d.csv", BOARD_DIM);
-    FILE *f = fopen(filename, "w");
-    if (!f) { perror(filename); return 1; }
+    char filename_final[128];
+    char filename_minus2[128];
+    char filename_minus5[128];
+
+    snprintf(filename_final, sizeof(filename_final), "datasets/hex_games_%d.csv", BOARD_DIM);
+    snprintf(filename_minus2, sizeof(filename_minus2), "datasets/hex_games_%d_minus2.csv", BOARD_DIM);
+    snprintf(filename_minus5, sizeof(filename_minus5), "datasets/hex_games_%d_minus5.csv", BOARD_DIM);
+
+    FILE *f_final = fopen(filename_final, "w");
+    FILE *f_minus2 = fopen(filename_minus2, "w");
+    FILE *f_minus5 = fopen(filename_minus5, "w");
+
+    if (!f_final || !f_minus2 || !f_minus5) {
+        perror("Error opening output files");
+        return 1;
+    }
 
     for (int i = 0; i < BOARD_DIM; i++) {
         for (int j = 0; j < BOARD_DIM; j++)
-            fprintf(f, "cell_%d_%d,", i, j);
+            fprintf(f_final, "cell_%d_%d,", i, j);
     }
-    fprintf(f, "winner\n");
+    fprintf(f_final, "winner\n");
+
+    for (int i = 0; i < BOARD_DIM; i++) {
+        for (int j = 0; j < BOARD_DIM; j++)
+            fprintf(f_minus2, "cell_%d_%d,", i, j);
+    }
+    fprintf(f_minus2, "winner\n");
+
+    for (int i = 0; i < BOARD_DIM; i++) {
+        for (int j = 0; j < BOARD_DIM; j++)
+            fprintf(f_minus5, "cell_%d_%d,", i, j);
+    }
+    fprintf(f_minus5, "winner\n");
 
     struct hex_game hg;
     for (int g = 0; g < total_games; g++) {
         hg_init(&hg);
         int player = 0, winner = -1;
+
+        int moves_made = 0;
+        int total_moves = BOARD_DIM * BOARD_DIM;
+
         while (!hg_full(&hg)) {
             int pos = hg_place_piece_random(&hg, player);
-            if (hg_winner(&hg, player, pos)) { winner = player; break; }
+            moves_made++;
+
+            if (hg_winner(&hg, player, pos)) {
+                winner = player;
+                break;
+            }
+
             player = 1 - player;
+
+            int moves_left = total_moves - moves_made;
+
+            // save board when 5 or 2 moves remain
+            if (moves_left == 5)
+                hg_write_board(f_minus5, &hg, winner);
+            else if (moves_left == 2)
+                hg_write_board(f_minus2, &hg, winner);
         }
 
-        for (int i = 1; i <= BOARD_DIM; i++) {
-            for (int j = 1; j <= BOARD_DIM; j++) {
-                int p0 = hg.board[(i * (BOARD_DIM + 2) + j) * 2];
-                int p1 = hg.board[(i * (BOARD_DIM + 2) + j) * 2 + 1];
-                int val = p0 ? 1 : (p1 ? -1 : 0);
-                fprintf(f, "%d,", val);
-            }
-        }
-        fprintf(f, "%d\n", winner);
+        hg_write_board(f_final, &hg, winner);
     }
 
-    fclose(f);
-    printf("Saved %d games to %s\n", total_games, filename);
+    fclose(f_final);
+    fclose(f_minus2);
+    fclose(f_minus5);
+
+    printf("Saved %d games to:\n", total_games);
+    printf("  %s\n", filename_final);
+    printf("  %s\n", filename_minus2);
+    printf("  %s\n", filename_minus5);
+
     return 0;
 }
