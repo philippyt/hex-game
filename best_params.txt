@@ -1,0 +1,135 @@
+================================================================================
+BOARD SIZE: 5x5
+================================================================================
+
+Dataset: All Moves (hex_games_5.csv)
+-----------------------------------
+
+number_of_clauses 5087
+T 1198
+s 1.961278605316491
+depth 1
+message_size 256
+message_bits 2
+
+Dataset: Minus 2 Moves (hex_games_5_minus2.csv)
+-----------------------------------------------
+number_of_clauses 5013
+T 39368 
+s 2.1722518282526173
+depth 1
+message_size 256
+message_bits 1
+
+Dataset: Minus 5 Moves (hex_games_5_minus5.csv)
+-----------------------------------------------
+number_of_clauses 6421
+T 6709
+s 1.271977058966781
+depth 3
+message_size 128
+message_bits 4
+
+
+================================================================================
+BOARD SIZE: 7x7
+================================================================================
+
+Dataset: All Moves (hex_games_7.csv)
+-----------------------------------
+number_of_clauses 5140
+T 4290
+s 2.2121500454167116
+depth 1
+message_size 512
+message_bits 4 
+
+Dataset: Minus 2 Moves (hex_games_7_minus2.csv)
+-----------------------------------------------
+number_of_clauses 5014
+T 4355
+s 1.538445825044984
+depth 1
+message_size 256
+message_bits 5
+
+Dataset: Minus 5 Moves (hex_games_7_minus5.csv)
+-----------------------------------------------
+number_of_clauses 19425
+T 2481
+s 1.5221092175693705
+depth 1
+message_size 256
+message_bits 1
+
+
+================================================================================
+BOARD SIZE: 9x9
+================================================================================
+
+Dataset: All Moves (hex_games_9.csv)
+-----------------------------------
+number_of_clauses 5077
+T 2652
+s 1.6384558381646066
+depth 1
+message_size 128
+message_bits 3
+
+Dataset: Minus 2 Moves (hex_games_9_minus2.csv)
+-----------------------------------------------
+number_of_clauses 5040
+T 2933
+s 1.3601594370731018
+depth 1
+message_size 512
+message_bits 4
+
+Dataset: Minus 5 Moves (hex_games_9_minus5.csv)
+-----------------------------------------------
+number_of_clauses 5403
+T 9884
+s 1.65357224341494
+depth 1
+message_size 256
+message_bits 2
+
+
+================================================================================
+BOARD SIZE: 11x11
+================================================================================
+
+Dataset: All Moves (hex_games_11.csv)
+-----------------------------------
+number_of_clauses 5434
+T 4569
+s 1.75619446613038
+depth 1
+message_size 512
+message_bits 3
+
+Dataset: Minus 2 Moves (hex_games_11_minus2.csv)
+-----------------------------------------------
+number_of_clauses 5984
+T 1775
+s 1.6675280706624207
+depth 1
+message_size 512
+message_bits 2
+
+Dataset: Minus 5 Moves (hex_games_11_minus5.csv)
+-----------------------------------------------
+number_of_clauses 6234
+T 4068
+s 1.8487588480177812
+depth 1
+message_size 512
+message_bits 2 
+
+
+================================================================================
+NOTES
+================================================================================
+
+There is no clear proportional increase between size and metrics.
+
