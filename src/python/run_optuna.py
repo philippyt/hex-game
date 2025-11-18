@@ -165,22 +165,18 @@ def main() -> None:
     """Main function to run optimization across all datasets."""
     # Define all dataset configurations to test
     configurations = [
-        # Board size 5
-        (5, ""),
-        (5, "_minus2"),
-        (5, "_minus5"),
-        # Board size 7
-        (7, ""),
-        (7, "_minus2"),
-        (7, "_minus5"),
-        # Board size 9
-        (9, ""),
-        (9, "_minus2"),
-        (9, "_minus5"),
-        # Board size 11
-        (11, ""),
-        (11, "_minus2"),
-        (11, "_minus5"),
+        # Board size 15
+        (15, ""),
+        (15, "_minus2"),
+        (15, "_minus5"),
+        # Board size 19
+        (19, ""),
+        (19, "_minus2"),
+        (19, "_minus5"),
+        # Board size 23
+        (23, ""),
+        (23, "_minus2"),
+        (23, "_minus5"),
     ]
 
     n_trials = 50  # Number of trials per dataset
